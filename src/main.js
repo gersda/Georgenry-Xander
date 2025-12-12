@@ -7,9 +7,9 @@ const config = {
   width: window.innerWidth,
   height: window.innerHeight,
   backgroundColor: "#202020",
-  scene: [Level1],
+  
   scale: {
-    mode: Phaser.Scale.RESIZE,
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   physics: {
@@ -18,6 +18,7 @@ const config = {
             debug: false
         }
     },
+  scene: [Level1],
 };
 
 new Phaser.Game(config);
