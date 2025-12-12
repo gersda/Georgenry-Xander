@@ -2,20 +2,26 @@ import Phaser from "phaser";
 import { Settings } from "./settings.js";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y) {
+  constructor(scene, x, y, canMove = true) {
     super(scene, x, y, "player", 0);
-    
+    this.canMove = canMove;
+    this.frictionFactor = 0.9;
+
     // add to scene
     scene.add.existing(this);
     scene.physics.add.existing(this);
-    
+
     // setup
     this.setCollideWorldBounds(true);
     this.setScale(Settings.player.scaleW, Settings.player.scaleH);
-    
+
+    this.setDrag(600, 600);        // slows down player when no input
+    this.setMaxVelocity(Settings.player.speed); // clamp speed
+    this.setDamping(true);
+
     // create animations
     this.#createAnims();
-    
+
     // setup keyboard input
     this.cursors = scene.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
@@ -24,9 +30,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     });
   }
-  
+
+
   update() {
-    this.setVelocity(0);
+        this.setAcceleration(0, 0);
 
     const left = this.cursors.left.isDown;
     const right = this.cursors.right.isDown;
@@ -37,23 +44,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     let vy = 0;
     let animation = "idle";
 
-    if (up) {
-      vy = -1;
-      animation = "walkUp";
-    } else if (down) {
-      vy = 1;
-      animation = "walkDown";
-    } else if (left) {
-      vx = -1;
-      animation = "walkLeft";
-    } else if (right) {
-      vx = 1;
-      animation = "walkRight";
-    }
+    if (this.canMove) {
+      if (up) {
+        vy = -1;
+        animation = "walkUp";
+      } else if (down) {
+        vy = 1;
+        animation = "walkDown";
+      } else if (left) {
+        vx = -1;
+        animation = "walkLeft";
+      } else if (right) {
+        vx = 1;
+        animation = "walkRight";
+      }
 
-    if (up || down) {
-      if (left) vx = -1;
-      else if (right) vx = 1;
+      if (up || down) {
+        if (left) vx = -1;
+        else if (right) vx = 1;
+      }
+    } else {
+      vx = vy = 0;
     }
 
     const len = Math.hypot(vx, vy);
@@ -61,17 +72,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       vx = (vx / len) * Settings.player.speed;
       vy = (vy / len) * Settings.player.speed;
     }
+    // this.frictionFactor -= this.frictionSpeedFactor
+    // this.frictionFactor = Math.min(0, this.frictionFactor);
+    // this.frictionFactor = 0 ? this.frictionFactor == 0 : this.frictionFactor;
+
+    // // console.log(this.frictionFactor)
+    // // v += a - f*v
+
+    // vx *= -this.frictionFactor;
 
     this.setVelocity(vx, vy);
     this.anims.play(animation, true);
   }
-  
+
   #createAnims() {
     const scene = this.scene;
-    
+
     // if animations already exist dont make them again
     if (scene.anims.exists("walkLeft")) return;
-    
+
     const walkLeftFrames = [11, 9, 10, 9];
     const walkRightFrames = [5, 3, 4, 3];
     const walkDownFrames = [2, 0, 1, 0];

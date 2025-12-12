@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { BaseScene } from "./base_scene.js";
 import { Player } from "./player.js";
 import * as Utils from "./utils.js";
+import { Body } from "matter";
 
 export class Level1 extends BaseScene {
   constructor() {
@@ -20,7 +21,6 @@ export class Level1 extends BaseScene {
 
     // create player
     this.player = new Player(this, 0, 0);
-    
     
     // position at center bottom
     const playerWidth = this.player.displayWidth;

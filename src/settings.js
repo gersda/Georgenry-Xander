@@ -1,7 +1,7 @@
 export class Settings {
   static player = {
-    speed: 500,
-    scaleW: 0.2,
+    speed: 200,
+    scaleW: 0.3,
     scaleH: 0.3,
   };
 }
