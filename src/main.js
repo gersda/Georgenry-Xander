@@ -1,4 +1,6 @@
+import Phaser from "phaser";
 import { Level1 } from "./level1";
+
 
 const config = {
   type: Phaser.AUTO,

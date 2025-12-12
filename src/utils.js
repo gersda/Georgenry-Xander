@@ -3,6 +3,6 @@ export function dynamicFont(w, h, factor) {
 }
 
 export function halfPoint(p1, p2) {
-  return s1 / 2 - s2 / 2;
+  return p1 / 2 - p2 / 2;
 }
 

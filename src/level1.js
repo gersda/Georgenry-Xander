@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 import { dynamicFont, halfPoint } from "./utils.js";
 import { playerSettings } from "./settings.js";
 
@@ -14,12 +15,11 @@ export class Level1 extends Phaser.Scene {
   }
 
   create() {
-    this.player = this.physics.add.sprite(
-      this.scale.width / 2,
-      300,
-      "player",
-      0
-    );
+    // create the player at 0,0
+    this.player = this.physics.add.sprite(0, 0, "player", 0);
+    this.player.setCollideWorldBounds(true);
+
+    // keyboard input
     this.cursors = this.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -27,58 +27,19 @@ export class Level1 extends Phaser.Scene {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     });
 
-    this.player.setCollideWorldBounds(true);
+    // animations
+    this.#createAnims();
 
-    this.player.setScale(0.5);
-
-    const walkLeftFrames = [11, 9, 10, 9];
-    const walkRightFrames = [5, 3, 4, 3];
-    const walkDownFrames = [2, 0, 1, 0];
-    const walkUpFrames = [8, 6, 7, 6];
-
-    this.anims.create({
-      key: "walkLeft",
-      frames: this.anims.generateFrameNumbers("player", {
-        frames: walkLeftFrames,
-      }), //start: 9, end: 11
-      frameRate: 8,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: "walkRight",
-      frames: this.anims.generateFrameNumbers("player", {
-        frames: walkRightFrames,
-      }), // start: 3, end: 5
-      frameRate: 8,
-      repeat: -1,
-    });
-    // up
-    this.anims.create({
-      key: "walkDown",
-      frames: this.anims.generateFrameNumbers("player", {
-        frames: walkDownFrames,
-      }), //start: 0, end: 2
-      frameRate: 8,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: "walkUp",
-      frames: this.anims.generateFrameNumbers("player", {
-        frames: walkUpFrames,
-      }), //start: 6, end: 8
-      frameRate: 8,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: "idle",
-      frames: this.anims.generateFrameNumbers("player", { frames: [0] }),
-      frameRate: 8,
-      repeat: -1,
-    });
-
+    // graphics
     this.graphics = this.add.graphics();
-    this.drawResponsive();
-    this.scale.on("resize", this.drawResponsive, this);
+    this.#draw();
+
+    // resize listener
+    this.scale.on("resize", () => this.#onResize(), this);
+
+    // initialize size and position
+    this.#onResize();
+    this.#playerStartPoint();
   }
 
   update() {
@@ -88,49 +49,126 @@ export class Level1 extends Phaser.Scene {
     const right = this.cursors.right.isDown;
     const up = this.cursors.up.isDown;
     const down = this.cursors.down.isDown;
-     
-    let vx = 0; // -1/0/1
-    let vy = 0; // -1/0/1
 
-    // vertical priority animation logic
+    let vx = 0;
+    let vy = 0;
     let animation = "idle";
 
-    // basic movement
     if (up) {
-    vy = -1;
-    animation = "walkUp";
+      vy = -1;
+      animation = "walkUp";
     } else if (down) {
-    vy = 1;
-    animation = "walkDown";
+      vy = 1;
+      animation = "walkDown";
     } else if (left) {
-    vx = -1;
-    animation = "walkLeft";
+      vx = -1;
+      animation = "walkLeft";
     } else if (right) {
-    vx = 1;
-    animation = "walkRight";
+      vx = 1;
+      animation = "walkRight";
     }
 
-    // diagonal movement
     if (up || down) {
-    if (left) vx = -1;
-    else if (right) vx = 1;
+      if (left) vx = -1;
+      else if (right) vx = 1;
     }
 
-    // normalize speed
     const len = Math.hypot(vx, vy);
     if (len > 0) {
-    vx = (vx / len) * playerSettings.speed; 
-    vy = (vy / len) * playerSettings.speed;
+      vx = (vx / len) * playerSettings.speed;
+      vy = (vy / len) * playerSettings.speed;
     }
 
     this.player.setVelocity(vx, vy);
     this.player.anims.play(animation, true);
+    this.player.relativeX = this.player.x / this.scale.width;
+    this.player.relativeY = this.player.y / this.scale.height;
   }
 
-  drawResponsive() {
+  // called on resize and at start
+  #onResize() {
     const w = this.scale.width;
     const h = this.scale.height;
 
+    this.#onResizePlayer(w, h);
+  }
+
+  #onResizePlayer(w, h) {
+    // scale
+    const origWidth = this.player.width;
+    const origHeight = this.player.height;
+
+    const scaleX = (playerSettings.sizeW * w) / origWidth;
+    const scaleY = (playerSettings.sizeH * h) / origHeight;
+
+    const scale = Math.min(scaleX, scaleY);
+    this.player.setScale(scale);
+
+    // position
+    if (!this.player.relativeX) this.player.relativeX = 0.5;  // center by default
+    if (!this.player.relativeY) this.player.relativeY = 0.5;  // bottom by default
+
+    this.player.x = this.player.relativeX * w;
+    this.player.y = this.player.relativeY * h;
+  }
+
+
+  #playerStartPoint() {
+    const w = this.scale.width;
+    const h = this.scale.height;
+    this.player.setPosition(
+      halfPoint(w, this.player.displayWidth),
+      h - this.player.displayHeight
+    );
+  }
+
+  #draw() {
     this.graphics.clear();
+  }
+
+  #createAnims() {
+    const walkLeftFrames = [11, 9, 10, 9];
+    const walkRightFrames = [5, 3, 4, 3];
+    const walkDownFrames = [2, 0, 1, 0];
+    const walkUpFrames = [8, 6, 7, 6];
+
+    this.anims.create({
+      key: "walkLeft",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: walkLeftFrames,
+      }),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "walkRight",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: walkRightFrames,
+      }),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "walkDown",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: walkDownFrames,
+      }),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "walkUp",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: walkUpFrames,
+      }),
+      frameRate: 8,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: "idle",
+      frames: this.anims.generateFrameNumbers("player", { frames: [0] }),
+      frameRate: 8,
+      repeat: -1,
+    });
   }
 }
