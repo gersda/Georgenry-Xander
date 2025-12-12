@@ -1,0 +1,15 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* no scroll bar */
+  background: #202020; /* default bg color */
+  height: 100%; /* makes the body fullscreen */
+}
+
+canvas {
+  display: block; /* removes extra bottom gap */
+}
