@@ -103,13 +103,6 @@ export class Level1 extends Phaser.Scene {
 
     const scale = Math.min(scaleX, scaleY);
     this.player.setScale(scale);
-
-    // position
-    if (!this.player.relativeX) this.player.relativeX = 0.5;  // center by default
-    if (!this.player.relativeY) this.player.relativeY = 0.5;  // bottom by default
-
-    this.player.x = this.player.relativeX * w;
-    this.player.y = this.player.relativeY * h;
   }
 
 
