@@ -5,29 +5,34 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, canMove = true) {
     super(scene, x, y, "player", 0);
     this.canMove = canMove;
-    this.frictionFactor = 0.9;
 
+    this.#create()
+  }
+
+  #create() {
     // add to scene
-    scene.add.existing(this);
-    scene.physics.add.existing(this);
+    this.scene.add.existing(this);
+    this.scene.physics.add.existing(this);
 
     // setup
-    this.setCollideWorldBounds(true);
     this.setScale(Settings.player.scaleW, Settings.player.scaleH);
-
-    this.setDrag(600, 600);        // slows down player when no input
-    this.setMaxVelocity(Settings.player.speed); // clamp speed
-    this.setDamping(true);
 
     // create animations
     this.#createAnims();
 
     // setup keyboard input
-    this.cursors = scene.input.keyboard.addKeys({
+    this.cursors = this.scene.input.keyboard.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.W,
       down: Phaser.Input.Keyboard.KeyCodes.S,
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
+    });
+  }
+
+  static preload(scene) {
+    scene.load.spritesheet("player", "public/assets/sprites/plrSheet.png", {
+      frameWidth: 4096 / 12, // 12 frames horizontally
+      frameHeight: 428, // height of one frame
     });
   }
 
@@ -72,65 +77,55 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       vx = (vx / len) * Settings.player.speed;
       vy = (vy / len) * Settings.player.speed;
     }
-    // this.frictionFactor -= this.frictionSpeedFactor
-    // this.frictionFactor = Math.min(0, this.frictionFactor);
-    // this.frictionFactor = 0 ? this.frictionFactor == 0 : this.frictionFactor;
-
-    // // console.log(this.frictionFactor)
-    // // v += a - f*v
-
-    // vx *= -this.frictionFactor;
 
     this.setVelocity(vx, vy);
     this.anims.play(animation, true);
   }
 
   #createAnims() {
-    const scene = this.scene;
-
     // if animations already exist dont make them again
-    if (scene.anims.exists("walkLeft")) return;
+    if (this.scene.anims.exists("walkLeft")) return;
 
     const walkLeftFrames = [11, 9, 10, 9];
     const walkRightFrames = [5, 3, 4, 3];
     const walkDownFrames = [2, 0, 1, 0];
     const walkUpFrames = [8, 6, 7, 6];
 
-    scene.anims.create({
+    this.scene.anims.create({
       key: "walkLeft",
-      frames: scene.anims.generateFrameNumbers("player", {
+      frames: this.scene.anims.generateFrameNumbers("player", {
         frames: walkLeftFrames,
       }),
       frameRate: 8,
       repeat: -1,
     });
-    scene.anims.create({
+    this.scene.anims.create({
       key: "walkRight",
-      frames: scene.anims.generateFrameNumbers("player", {
+      frames: this.scene.anims.generateFrameNumbers("player", {
         frames: walkRightFrames,
       }),
       frameRate: 8,
       repeat: -1,
     });
-    scene.anims.create({
+    this.scene.anims.create({
       key: "walkDown",
-      frames: scene.anims.generateFrameNumbers("player", {
+      frames: this.scene.anims.generateFrameNumbers("player", {
         frames: walkDownFrames,
       }),
       frameRate: 8,
       repeat: -1,
     });
-    scene.anims.create({
+    this.scene.anims.create({
       key: "walkUp",
-      frames: scene.anims.generateFrameNumbers("player", {
+      frames: this.scene.anims.generateFrameNumbers("player", {
         frames: walkUpFrames,
       }),
       frameRate: 8,
       repeat: -1,
     });
-    scene.anims.create({
+    this.scene.anims.create({
       key: "idle",
-      frames: scene.anims.generateFrameNumbers("player", { frames: [0] }),
+      frames: this.scene.anims.generateFrameNumbers("player", { frames: [0] }),
       frameRate: 8,
       repeat: -1,
     });

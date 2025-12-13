@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { BaseScene } from "./base_scene.js";
 import { Player } from "./player.js";
 import * as Utils from "./utils.js";
-import { Body } from "matter";
+import { Settings } from "./settings.js";
 
 export class Level1 extends BaseScene {
   constructor() {
@@ -10,27 +10,40 @@ export class Level1 extends BaseScene {
   }
 
   preload() {
-    this.load.spritesheet("player", "public/assets/sprites/plrSheet.png", {
-      frameWidth: 4096 / 12, // 12 frames horizontally
-      frameHeight: 428, // height of one frame
-    });
+    Player.preload(this);
+    this.load.image("blocks", "public/assets/blocks.png", {});
   }
 
   create() {
-    super.create()
+    super.create();
+
+    // blocks
+    this.blocks = this.physics.add.image(
+      this.scale.width * 0.5,
+      this.scale.height * 0.5,
+      "blocks"
+    );
+    this.blocks.setScale(0.25);
 
     // create player
     this.player = new Player(this, 0, 0);
-    
+
     // position at center bottom
     const playerWidth = this.player.displayWidth;
     const playerHeight = this.player.displayHeight;
     const playerStartingX = Utils.halfPoint(this.scale.width, playerWidth);
     const playerStartingY = this.scale.height - playerHeight;
-    
+
     this.player.setPosition(playerStartingX, playerStartingY);
 
-    // Graphics (if needed)
+    // main camera
+    var cam = this.cameras.main
+    cam.setZoom(Settings.mainCamera.zoom);
+    cam.startFollow(
+      this.player,
+    );
+
+    // graphics
     this.graphics = this.add.graphics();
   }
 
